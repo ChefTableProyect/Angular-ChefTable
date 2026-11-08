@@ -3,8 +3,6 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FormUtils } from '../../shared/utils/form-utils';
-import { AlertService } from '../../shared/services/alert.service';
-import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -15,11 +13,8 @@ import { AuthService } from '../../core/services/auth.service';
 export class RegisterComponent {
   fb = inject(FormBuilder);
   router = inject(Router);
-  alertService = inject(AlertService);
   formUtils = FormUtils;
   showPassword = false;
-  registerService = inject(AuthService);
-    loading: boolean = false;
 
   registerForm = this.fb.group(
     {

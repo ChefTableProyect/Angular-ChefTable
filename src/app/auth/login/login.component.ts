@@ -4,7 +4,6 @@ import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthStore } from '../../core/auth/auth.store';
 import { AuthService } from '../../core/services/auth.service';
-import { AlertService } from '../../shared/services/alert.service';
 
 @Component({
   selector: 'app-login',
@@ -14,14 +13,15 @@ import { AlertService } from '../../shared/services/alert.service';
   styleUrl: './login.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LoginComponent implements OnInit {
-  fb = inject(FormBuilder);
-  router = inject(Router);
-  route = inject(ActivatedRoute);
-  loginService = inject(AuthService);
-  formUtils = FormUtils;
-  showPassword: boolean = false;
-  loading: boolean = false;
+export class LoginComponent {
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly authStore = inject(AuthStore);
+  private readonly router = inject(Router);
+
+  readonly loading = signal(false);
+  readonly errorMessage = signal('');
+  readonly showPassword = signal(false);
 
   readonly loginForm = this.formBuilder.nonNullable.group({
     address: ['', [Validators.required, Validators.email]],
@@ -34,40 +34,19 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    const { email, password } = this.loginForm.value;
-    const formData = { address: email, password };
-    // const formData = this.loginForm.value;
-    this.loading = true;
-    this.loginService.login(formData).subscribe(
-      (resp: any) => {
-        console.log(resp);
-
-        this.loginService.setToken(resp.token);
-        this.router.navigate(['/catalogo']);
-        // this.loginService.setCookie('user_name', resp.usuarioDB.nombre);
-        // this.loginService.setCookie('user_profile', resp.usuarioDB.profile);
-
-        this.loading = false;
-      },
-      (err) => {
-        console.error(err);
-        // this.alertService.topCenter('Usuario o password incorrectos', 'warning');
-        this.loading = false;
-      }
-    );
-    // 👇 Por ahora, simular login con cualquier credencial
-    // this.router.navigate(['/catalogo']);
-  }
-
-  goToRegister() {
-    this.router.navigate(['/register']);
-  }
-
-  goToRecover() {
-    this.router.navigate(['/recover']);
-  }
-
-  togglePasswordVisibility() {
-    this.showPassword = !this.showPassword;
+    this.errorMessage.set('');
+    this.loading.set(true);
+    this.authService
+      .login(this.loginForm.getRawValue())
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (session) => {
+          this.authStore.setSession(session.token, session.role);
+          void this.router.navigate([session.role === 'KITCHEN' ? '/kitchen' : '/admin']);
+        },
+        error: () => {
+          this.errorMessage.set('No pudimos iniciar sesión. Revisa tus credenciales e inténtalo nuevamente.');
+        },
+      });
   }
 }
