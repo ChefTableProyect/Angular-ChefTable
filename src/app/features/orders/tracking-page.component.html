@@ -1,0 +1,45 @@
+<header class="tracking-header"><a class="brand" routerLink="/"><span>CT</span> ChefTable</a><a routerLink="/menu">Ver menú</a></header>
+
+<main class="tracking shell">
+  @if (!hasPublicCode()) {
+    <section class="finder surface-card">
+      <p class="eyebrow">Seguimiento</p>
+      <h1>¿Cómo va tu pedido?</h1>
+      <p>Ingresa el código que recibiste al confirmar.</p>
+      <form (ngSubmit)="search()">
+        <label class="sr-only" for="order-code">Código del pedido</label>
+        <input id="order-code" name="code" [ngModel]="code()" (ngModelChange)="code.set($event)" placeholder="Ej. 7AC92F10B4D1" autocomplete="off">
+        <button class="btn btn-primary" type="submit">Consultar pedido</button>
+      </form>
+    </section>
+  } @else if (loading() && !order()) {
+    <section class="loading-state" aria-live="polite"><span></span><p>Consultando la cocina…</p></section>
+  } @else if (errorMessage()) {
+    <section class="finder surface-card" role="alert"><p class="eyebrow">No encontrado</p><h1>Ese código no nos resulta familiar.</h1><p>{{ errorMessage() }}</p><a class="btn btn-secondary" routerLink="/orders/track">Probar otro código</a></section>
+  } @else {
+    @if (order(); as currentOrder) {
+    <section class="tracking-title">
+      <div><p class="eyebrow">Pedido {{ currentOrder.publicCode }}</p><h1>{{ statusLabel() }}</h1><p>{{ currentOrder.tableName }} · confirmado {{ currentOrder.createdAt | date:'shortTime':'':'es-PE' }}</p></div>
+      <span class="live-badge"><i></i> Se actualiza automáticamente</span>
+    </section>
+
+    @if (currentOrder.status === 'CANCELLED') {
+      <section class="cancelled surface-card"><h2>El pedido fue cancelado</h2><p>Consulta con nuestro equipo si necesitas más información.</p></section>
+    } @else {
+      <ol class="progress" aria-label="Progreso del pedido">
+        <li [class.reached]="stepReached('CONFIRMED')"><span>1</span><div><strong>Confirmado</strong><small>La cocina recibió tu pedido.</small></div></li>
+        <li [class.reached]="stepReached('PREPARING')"><span>2</span><div><strong>En preparación</strong><small>Estamos preparando cada plato.</small></div></li>
+        <li [class.reached]="stepReached('READY')"><span>3</span><div><strong>Listo</strong><small>Tu pedido está listo para salir.</small></div></li>
+        <li [class.reached]="stepReached('DELIVERED')"><span>4</span><div><strong>Entregado</strong><small>Es momento de disfrutar.</small></div></li>
+      </ol>
+    }
+
+    <section class="order-detail surface-card">
+      <div class="detail-heading"><div><p class="eyebrow">Resumen</p><h2>Tu pedido</h2></div><strong>{{ currentOrder.total | currency:'PEN':'symbol':'1.2-2':'es-PE' }}</strong></div>
+      @for (item of currentOrder.items; track item.productId) {
+        <div class="detail-line"><span>{{ item.quantity }}×</span><div><strong>{{ item.name }}</strong>@if(item.notes){<small>{{ item.notes }}</small>}</div><span>{{ item.subtotal | currency:'PEN':'symbol':'1.2-2':'es-PE' }}</span></div>
+      }
+    </section>
+    }
+  }
+</main>

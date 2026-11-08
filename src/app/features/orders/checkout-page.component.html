@@ -1,0 +1,68 @@
+<header class="simple-header">
+  <a class="brand" routerLink="/"><span>CT</span> ChefTable</a>
+  <a routerLink="/menu" [queryParams]="{ table: cart.tableCode() }">← Seguir eligiendo</a>
+</header>
+
+<main class="checkout shell">
+  <section class="checkout-intro">
+    <p class="eyebrow">Último paso</p>
+    <h1>Revisa tu pedido.</h1>
+    <p>La cocina validará nuevamente los precios y la disponibilidad antes de confirmarlo.</p>
+  </section>
+
+  @if (!cart.tableCode()) {
+    <section class="empty surface-card">
+      <span aria-hidden="true">⌁</span>
+      <h2>Falta identificar tu mesa</h2>
+      <p>Abre el menú desde el QR de la mesa antes de preparar un pedido.</p>
+      <a class="btn btn-primary" routerLink="/" fragment="qr-demo">Simular un QR</a>
+    </section>
+  } @else if (cart.items().length === 0) {
+    <section class="empty surface-card">
+      <span aria-hidden="true">◇</span>
+      <h2>Tu pedido está vacío</h2>
+      <p>Vuelve al menú y elige algo que te provoque.</p>
+      <a class="btn btn-primary" routerLink="/menu">Explorar el menú</a>
+    </section>
+  } @else {
+    <div class="checkout-grid">
+      <section class="order-list surface-card" aria-labelledby="detail-title">
+        <div class="section-title"><div><p class="eyebrow">Detalle</p><h2 id="detail-title">Lo que elegiste</h2></div><span>{{ cart.itemCount() }} ítems</span></div>
+        @for (item of cart.items(); track item.product.id; let index = $index) {
+          <article class="order-item" [style.animation-delay.ms]="260 + index * 50">
+            <div class="quantity-badge">{{ item.quantity }}</div>
+            <div>
+              <h3>{{ item.product.name }}</h3>
+              <p>{{ item.product.price | currency:'PEN':'symbol':'1.2-2':'es-PE' }} por unidad</p>
+              <label [for]="'notes-' + item.product.id">Indicaciones para cocina</label>
+              <textarea
+                [id]="'notes-' + item.product.id"
+                rows="2"
+                maxlength="300"
+                placeholder="Ej. sin cebolla, salsa aparte…"
+                [ngModel]="item.notes"
+                (ngModelChange)="cart.updateNotes(item.product.id, $event)"
+                [disabled]="submitting()"
+              ></textarea>
+            </div>
+            <strong>{{ item.product.price * item.quantity | currency:'PEN':'symbol':'1.2-2':'es-PE' }}</strong>
+          </article>
+        }
+      </section>
+
+      <aside class="summary surface-card" aria-labelledby="summary-title">
+        <p class="eyebrow">Resumen</p>
+        <h2 id="summary-title">Mesa {{ cart.tableCode() }}</h2>
+        <p class="locked-table"><span aria-hidden="true">⌾</span> Mesa identificada mediante QR</p>
+        <div class="summary-line"><span>Productos</span><span>{{ cart.total() | currency:'PEN':'symbol':'1.2-2':'es-PE' }}</span></div>
+        <div class="summary-line total"><span>Total estimado</span><strong>{{ cart.total() | currency:'PEN':'symbol':'1.2-2':'es-PE' }}</strong></div>
+        <p class="summary-note">El pago se realiza directamente en el restaurante.</p>
+        @if (availabilityMessage()) { <p class="availability" role="status">{{ availabilityMessage() }}</p> }
+        @if (errorMessage()) { <p class="error" role="alert">{{ errorMessage() }}</p> }
+        <button class="btn btn-primary confirm" type="button" (click)="confirm()" [disabled]="submitting() || checkingAvailability() || !cart.tableCode()">
+          {{ submitting() ? 'Confirmando…' : checkingAvailability() ? 'Verificando…' : 'Enviar pedido a cocina' }}
+        </button>
+      </aside>
+    </div>
+  }
+</main>

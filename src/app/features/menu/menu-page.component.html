@@ -1,0 +1,166 @@
+<a class="skip-link" href="#menu-content">Saltar al menú</a>
+
+<header class="menu-header">
+  <a class="brand" routerLink="/" aria-label="ChefTable, volver al inicio">
+    <span class="brand-mark" aria-hidden="true">CT</span>
+    <span>ChefTable</span>
+  </a>
+  <nav aria-label="Acciones del menú">
+    <a routerLink="/">Inicio</a>
+    <a routerLink="/orders/track">Seguir pedido</a>
+    <button class="cart-button" type="button" (click)="cartOpen.set(true)" [attr.aria-label]="'Abrir pedido con ' + cart.itemCount() + ' ítems'">
+      <span>Mi pedido</span>
+      <strong>{{ cart.itemCount() }}</strong>
+    </button>
+  </nav>
+</header>
+
+<main id="menu-content">
+  <section class="menu-hero">
+    <div class="shell hero-grid">
+      <div>
+        <p class="eyebrow">Menú de temporada</p>
+        <h1>Elige a tu ritmo.<br><em>Nosotros cocinamos.</em></h1>
+        <p class="hero-copy">Platos preparados al momento, con ingredientes de temporada y el cuidado de siempre.</p>
+      </div>
+      <div class="table-card">
+        @if (tableLoading()) {
+          <p class="table-label">Identificando mesa</p>
+          <h2>Validando…</h2>
+          <small>Estamos comprobando el acceso de la mesa.</small>
+        } @else if (tableVerified()) {
+          <p class="table-label">Mesa asignada</p>
+          <h2>{{ tableName() }}</h2>
+          <strong>{{ cart.tableCode() }}</strong>
+          <small>Esta mesa fue identificada por el enlace del QR y no puede modificarse durante el pedido.</small>
+        } @else {
+          <p class="table-label">Modo consulta</p>
+          <h2>Sin mesa</h2>
+          <small>{{ tableError() }}</small>
+          <a class="btn btn-secondary" routerLink="/" fragment="qr-demo">Simular un QR</a>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="shell menu-section" aria-labelledby="menu-title">
+    <div class="menu-tools">
+      <div>
+        <p class="eyebrow">Nuestra selección</p>
+        <h2 id="menu-title">La carta de hoy</h2>
+      </div>
+      <label class="search-field">
+        <span class="sr-only">Buscar en el menú</span>
+        <span aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          placeholder="Buscar un plato o categoría"
+          [value]="search()"
+          (input)="updateSearch($any($event.target).value)"
+        >
+      </label>
+    </div>
+
+    <div class="category-list" role="group" aria-label="Filtrar por categoría">
+      <button type="button" [class.active]="selectedCategory() === null" (click)="selectedCategory.set(null)">Todos</button>
+      @for (category of categories(); track category.id) {
+        <button type="button" [class.active]="selectedCategory() === category.id" (click)="selectedCategory.set(category.id)">
+          {{ category.name }}
+        </button>
+      }
+    </div>
+
+    @if (loading()) {
+      <div class="menu-grid" aria-label="Cargando menú" aria-busy="true">
+        @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
+          <div class="skeleton-card"><div></div><span></span><span></span></div>
+        }
+      </div>
+    } @else if (errorMessage()) {
+      <div class="state-card" role="alert">
+        <span aria-hidden="true">↻</span>
+        <h3>No pudimos servir el menú</h3>
+        <p>{{ errorMessage() }}</p>
+        <button class="btn btn-primary" type="button" (click)="loadMenu()">Intentar nuevamente</button>
+      </div>
+    } @else if (filteredItems().length === 0) {
+      <div class="state-card">
+        <span aria-hidden="true">⌕</span>
+        <h3>No encontramos coincidencias</h3>
+        <p>Prueba otra búsqueda o selecciona todas las categorías.</p>
+        <button class="btn btn-secondary" type="button" (click)="search.set(''); selectedCategory.set(null)">Limpiar filtros</button>
+      </div>
+    } @else {
+      <div class="menu-grid">
+        @for (item of filteredItems(); track item.id; let index = $index) {
+          <article class="menu-card" [class.unavailable]="!item.available" [style.animation-delay.ms]="index * 55">
+            <div class="card-image">
+              <img [src]="imageFor(item)" [alt]="item.name" loading="lazy">
+              <span>{{ item.categoryName }}</span>
+              @if (!item.available) { <strong>Agotado</strong> }
+            </div>
+            <div class="card-body">
+              <div>
+                <h3>{{ item.name }}</h3>
+                <p>Preparado al momento con ingredientes seleccionados por nuestra cocina.</p>
+              </div>
+              <div class="card-footer">
+                <span>{{ item.price | currency:'PEN':'symbol':'1.2-2':'es-PE' }}</span>
+                <button
+                  type="button"
+                  (click)="cart.add(item)"
+                  [disabled]="!item.available || !tableVerified()"
+                  [attr.aria-label]="tableVerified() ? 'Agregar ' + item.name + ' al pedido' : 'Escanea el QR de una mesa para pedir'"
+                >
+                  <span aria-hidden="true">+</span>
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</main>
+
+@if (cart.itemCount() > 0) {
+  <button class="mobile-cart" type="button" (click)="cartOpen.set(true)">
+    <span>{{ cart.itemCount() }} {{ cart.itemCount() === 1 ? 'ítem' : 'ítems' }}</span>
+    <strong>Ver pedido · {{ cart.total() | currency:'PEN':'symbol':'1.2-2':'es-PE' }}</strong>
+  </button>
+}
+
+@if (cartOpen()) {
+  <div class="drawer-backdrop" (click)="cartOpen.set(false)" aria-hidden="true"></div>
+  <aside class="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+    <div class="drawer-header">
+      <div><p class="eyebrow">Mesa {{ cart.tableCode() }}</p><h2 id="cart-title">Tu pedido</h2></div>
+      <button type="button" class="close-button" (click)="cartOpen.set(false)" aria-label="Cerrar pedido">×</button>
+    </div>
+
+    @if (cart.items().length === 0) {
+      <div class="empty-cart"><span aria-hidden="true">◇</span><p>Aún no agregaste platos.</p></div>
+    } @else {
+      <div class="cart-items">
+        @for (item of cart.items(); track item.product.id; let index = $index) {
+          <article class="cart-item" [style.animation-delay.ms]="index * 45">
+            <img [src]="imageFor(item.product)" alt="" aria-hidden="true">
+            <div>
+              <h3>{{ item.product.name }}</h3>
+              <span>{{ item.product.price | currency:'PEN':'symbol':'1.2-2':'es-PE' }}</span>
+              <div class="quantity">
+                <button type="button" (click)="cart.decrease(item.product.id)" [attr.aria-label]="'Quitar una unidad de ' + item.product.name">−</button>
+                <strong>{{ item.quantity }}</strong>
+                <button type="button" (click)="cart.add(item.product)" [attr.aria-label]="'Agregar una unidad de ' + item.product.name">+</button>
+                <button class="remove" type="button" (click)="cart.remove(item.product.id)">Eliminar</button>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+
+      <div class="drawer-total"><span>Total estimado</span><strong>{{ cart.total() | currency:'PEN':'symbol':'1.2-2':'es-PE' }}</strong></div>
+      <a class="btn btn-primary checkout-button" routerLink="/orders/checkout" (click)="cartOpen.set(false)">Revisar y confirmar</a>
+    }
+  </aside>
+}

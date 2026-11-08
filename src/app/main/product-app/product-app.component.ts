@@ -33,15 +33,9 @@ export class ProductAppComponent implements OnInit {
     this.service.getAllProductos().subscribe({
       next: (res) => {
         this.productos = res;
-        console.log("Productos cargados:", this.productos);
         this.isLoading = false;
       },
-      error: (err) => {
-        console.error("Error al obtener productos:", err);
-        this.isLoading = false;
-      },
-      complete: () => {
-        console.log("Carga de productos completada.");
+      error: () => {
         this.isLoading = false;
       }
     });

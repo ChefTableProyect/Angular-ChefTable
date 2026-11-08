@@ -1,0 +1,60 @@
+<header class="board-header">
+  <div class="brand"><span>CT</span><div><strong>ChefTable</strong><small>Panel de cocina</small></div></div>
+  <div class="header-status"><i></i><span>Actualización automática</span></div>
+  <button type="button" (click)="logout()">Cerrar sesión</button>
+</header>
+
+<main class="board">
+  <section class="board-title">
+    <div><p class="eyebrow">Servicio en curso</p><h1>Cola de cocina</h1></div>
+    <div class="counter"><strong>{{ orders().length }}</strong><span>pedidos activos</span></div>
+  </section>
+
+  @if (errorMessage()) { <p class="board-error" role="alert">{{ errorMessage() }}</p> }
+
+  @if (loading()) {
+    <div class="loading"><span></span><p>Actualizando comandas…</p></div>
+  } @else {
+    <div class="columns">
+      <section class="order-column" aria-labelledby="confirmed-title">
+        <header><div><i class="dot confirmed-dot"></i><h2 id="confirmed-title">Nuevos</h2></div><span>{{ confirmed().length }}</span></header>
+        <div class="cards">
+          @for (order of confirmed(); track order.id) {
+            <ng-container [ngTemplateOutlet]="orderCard" [ngTemplateOutletContext]="{ order: order, next: 'PREPARING', label: 'Comenzar preparación' }"></ng-container>
+          } @empty { <p class="empty">Sin pedidos nuevos.</p> }
+        </div>
+      </section>
+
+      <section class="order-column" aria-labelledby="preparing-title">
+        <header><div><i class="dot preparing-dot"></i><h2 id="preparing-title">Preparando</h2></div><span>{{ preparing().length }}</span></header>
+        <div class="cards">
+          @for (order of preparing(); track order.id) {
+            <ng-container [ngTemplateOutlet]="orderCard" [ngTemplateOutletContext]="{ order: order, next: 'READY', label: 'Marcar como listo' }"></ng-container>
+          } @empty { <p class="empty">Nada en preparación.</p> }
+        </div>
+      </section>
+
+      <section class="order-column" aria-labelledby="ready-title">
+        <header><div><i class="dot ready-dot"></i><h2 id="ready-title">Listos</h2></div><span>{{ ready().length }}</span></header>
+        <div class="cards">
+          @for (order of ready(); track order.id) {
+            <ng-container [ngTemplateOutlet]="orderCard" [ngTemplateOutletContext]="{ order: order, next: 'DELIVERED', label: 'Confirmar entrega' }"></ng-container>
+          } @empty { <p class="empty">Ningún pedido esperando.</p> }
+        </div>
+      </section>
+    </div>
+  }
+</main>
+
+<ng-template #orderCard let-order="order" let-next="next" let-label="label">
+  <article class="order-card">
+    <div class="card-top"><div><span>{{ order.tableName }}</span><strong>#{{ order.publicCode.slice(-4) }}</strong></div><time>{{ order.createdAt | date:'shortTime':'':'es-PE' }}</time></div>
+    <ul>
+      @for (item of order.items; track item.productId) {
+        <li><b>{{ item.quantity }}×</b><div><strong>{{ item.name }}</strong>@if(item.notes){<small>{{ item.notes }}</small>}</div></li>
+      }
+    </ul>
+    <button type="button" (click)="move(order, next)" [disabled]="updatingId() === order.id">{{ updatingId() === order.id ? 'Actualizando…' : label }}</button>
+    @if (order.status !== 'READY') { <button class="cancel" type="button" (click)="move(order, 'CANCELLED')">Cancelar pedido</button> }
+  </article>
+</ng-template>

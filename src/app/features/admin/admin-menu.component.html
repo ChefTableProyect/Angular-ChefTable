@@ -1,0 +1,52 @@
+<aside class="sidebar">
+  <div class="brand"><span>CT</span><div><strong>ChefTable</strong><small>Administración</small></div></div>
+  <nav aria-label="Administración"><a class="active" href="#menu-admin">Menú</a><a href="#" aria-disabled="true">Categorías <small>Próximamente</small></a><a href="#" aria-disabled="true">Mesas <small>Próximamente</small></a></nav>
+  <button type="button" (click)="logout()">Cerrar sesión</button>
+</aside>
+
+<main id="menu-admin" class="admin-main">
+  <header class="admin-header"><div><p class="eyebrow">Operación diaria</p><h1>Gestión del menú</h1><p>Actualiza precios, existencias y visibilidad desde una sola vista.</p></div><button class="btn btn-primary" type="button" (click)="create()">+ Nuevo plato</button></header>
+
+  <section class="metrics" aria-label="Resumen del menú">
+    <article><span>Platos registrados</span><strong>{{ items().length }}</strong></article>
+    <article><span>Disponibles ahora</span><strong>{{ availableCount() }}</strong><small>Consulta la tabla para el detalle</small></article>
+    <article><span>Categorías</span><strong>{{ categories().length }}</strong></article>
+  </section>
+
+  @if (errorMessage()) { <p class="admin-error" role="alert">{{ errorMessage() }}</p> }
+
+  <section class="table-card">
+    <div class="table-heading"><div><h2>Carta completa</h2><p>Los cambios se reflejan en el menú público.</p></div><button type="button" (click)="load()">Actualizar</button></div>
+    @if (loading()) { <div class="loading">Cargando platos…</div> }
+    @else {
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Plato</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th><span class="sr-only">Acciones</span></th></tr></thead>
+          <tbody>
+            @for (item of items(); track item.id) {
+              <tr>
+                <td><strong>{{ item.name }}</strong></td><td>{{ item.categoryName }}</td><td>{{ item.price | currency:'PEN':'symbol':'1.2-2':'es-PE' }}</td><td>{{ item.stock }}</td>
+                <td><span class="status" [class.inactive]="!item.active">{{ item.active ? (item.available ? 'Disponible' : 'Sin stock') : 'Inactivo' }}</span></td>
+                <td class="actions"><button type="button" (click)="edit(item)">Editar</button>@if(item.active){<button class="danger" type="button" (click)="deactivate(item)">Desactivar</button>}</td>
+              </tr>
+            } @empty { <tr><td colspan="6" class="empty">No hay platos registrados.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</main>
+
+@if (editorOpen()) {
+  <div class="modal-backdrop" (click)="editorOpen.set(false)" aria-hidden="true"></div>
+  <section class="editor" role="dialog" aria-modal="true" aria-labelledby="editor-title">
+    <header><div><p class="eyebrow">{{ editingId() === null ? 'Nuevo registro' : 'Editar registro' }}</p><h2 id="editor-title">{{ editingId() === null ? 'Agregar plato' : 'Actualizar plato' }}</h2></div><button type="button" (click)="editorOpen.set(false)" aria-label="Cerrar">×</button></header>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <label>Nombre<input formControlName="name" placeholder="Nombre del plato"></label>
+      <div class="form-row"><label>Precio<input type="number" formControlName="price" min="0.01" step="0.01"></label><label>Stock<input type="number" formControlName="stock" min="0" step="1"></label></div>
+      <label>Categoría<select formControlName="categoryId">@for(category of categories();track category.id){<option [value]="category.id">{{ category.name }}</option>}</select></label>
+      <label class="check"><input type="checkbox" formControlName="active"><span>Visible en el menú público</span></label>
+      <div class="editor-actions"><button class="btn btn-secondary" type="button" (click)="editorOpen.set(false)">Cancelar</button><button class="btn btn-primary" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar plato' }}</button></div>
+    </form>
+  </section>
+}

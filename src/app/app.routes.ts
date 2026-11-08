@@ -1,37 +1,39 @@
 import { Routes } from '@angular/router';
+import { roleGuard } from './core/auth/role.guard';
 
 export const routes: Routes = [
-  { 
-    path: '', 
-    loadComponent: () => import('./pages/welcome/welcome.component').then(m => m.WelcomeComponent),
-    data: { animation: 'WelcomePage' }
+  {
+    path: '',
+    loadChildren: () =>
+      import('./features/landing/landing.routes').then((routes) => routes.LANDING_ROUTES),
   },
-  { 
-    path: 'catalogo', 
-    loadComponent: () => import('./main/product-app/product-app.component').then(m => m.ProductAppComponent),
-    data: { animation: 'CatalogPage' }
+  {
+    path: 'menu',
+    loadChildren: () =>
+      import('./features/menu/menu.routes').then((routes) => routes.MENU_ROUTES),
   },
-  { 
-    path: 'login', 
-    loadComponent: () => import('./auth/login/login.component').then(m => m.LoginComponent),
-    data: { animation: 'LoginPage' }
+  {
+    path: 'orders',
+    loadChildren: () =>
+      import('./features/orders/order.routes').then((routes) => routes.ORDER_ROUTES),
   },
-  { 
-    path: 'register', 
-    loadComponent: () => import('./auth/register/register.component').then(m => m.RegisterComponent),
-    data: { animation: 'RegisterPage' }
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('./auth/login/login.component').then((component) => component.LoginComponent),
   },
-  { 
-    path: 'recover', 
-    loadComponent: () => import('./auth/recover/recover.component').then(m => m.RecoverComponent),
-    data: { animation: 'RecoverPage' }
+  {
+    path: 'kitchen',
+    canMatch: [roleGuard('KITCHEN', 'ADMIN')],
+    loadChildren: () =>
+      import('./features/kitchen/kitchen.routes').then((routes) => routes.KITCHEN_ROUTES),
   },
-  { 
-    path: 'reset-password', 
-    loadComponent: () => import('./auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent),
-    data: { animation: 'ResetPasswordPage' }
+  {
+    path: 'admin',
+    canMatch: [roleGuard('ADMIN')],
+    loadChildren: () =>
+      import('./features/admin/admin.routes').then((routes) => routes.ADMIN_ROUTES),
   },
+  { path: 'catalogo', redirectTo: 'menu', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
 ];
-
-

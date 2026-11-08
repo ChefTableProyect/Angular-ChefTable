@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Producto } from '../models/Producto';
 import { environment } from '../../../environments/environment';
-const baseUrl = environment.base_url;
+const baseUrl = environment.apiUrl;
 @Injectable({
   providedIn: 'root',
 })
@@ -22,10 +22,10 @@ export class ProductService {
     };
   }
   getAllProductos(): Observable<Producto[]> {
-    return this.http.get<Producto[]>(baseUrl + '/productos', this.headers);
+    return this.http.get<Producto[]>(`${baseUrl}/menu/items`, this.headers);
   }
 
   recoverPassword(data: any): Observable<Producto[]> {
-    return this.http.post<any[]>(baseUrl + '/auth/recover', data);
+    return this.http.post<any[]>(`${environment.authUrl}/recover`, data);
   }
 }

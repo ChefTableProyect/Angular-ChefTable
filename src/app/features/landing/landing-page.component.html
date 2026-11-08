@@ -1,0 +1,156 @@
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
+
+<header class="site-header">
+  <a class="brand" routerLink="/" aria-label="ChefTable, inicio">
+    <span class="brand-mark" aria-hidden="true">CT</span>
+    <span>ChefTable</span>
+  </a>
+
+  <nav aria-label="Navegación principal">
+    <a href="#experience">Experiencia</a>
+    <a href="#story">Nuestra cocina</a>
+    <a href="#visit">Visítanos</a>
+  </nav>
+
+  <div class="header-actions">
+    <a class="staff-link" routerLink="/login">Acceso del equipo</a>
+    <a class="btn btn-primary" href="#qr-demo">Iniciar demo</a>
+  </div>
+</header>
+
+<main id="main-content">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-media" aria-hidden="true"></div>
+    <div class="hero-shade" aria-hidden="true"></div>
+    <div class="hero-content shell">
+      <p class="eyebrow">Una experiencia hecha para tu mesa</p>
+      <h1 id="hero-title">Sabores memorables.<br><em>Sin esperas.</em></h1>
+      <p class="hero-copy">
+        Explora nuestra carta, elige a tu ritmo y envía el pedido directamente a cocina desde tu mesa.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#qr-demo">Simular QR de mesa</a>
+        <a class="text-link" href="#experience">Descubre cómo funciona <span aria-hidden="true">↓</span></a>
+      </div>
+    </div>
+    <div class="hero-note">
+      <span aria-hidden="true">✦</span>
+      <p><strong>Servicio digital, hospitalidad real.</strong><br>La tecnología acompaña; nuestro equipo cuida tu experiencia.</p>
+    </div>
+  </section>
+
+  <section id="experience" class="experience shell" aria-labelledby="experience-title" appRevealOnScroll>
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Simple desde el primer momento</p>
+        <h2 id="experience-title">Tu pedido, en tres pasos.</h2>
+      </div>
+      <p>Menos tiempo esperando, más tiempo compartiendo. Tú decides cuándo explorar y cuándo ordenar.</p>
+    </div>
+
+    <div id="qr-demo" class="qr-demo" aria-labelledby="qr-demo-title">
+      <div>
+        <p class="eyebrow">Demostración para portafolio</p>
+        <h3 id="qr-demo-title">Simula el QR que estaría en cada mesa.</h3>
+        <p>En el restaurante cada enlace estaría impreso como QR. Aquí puedes elegir cuál escanear para probar el recorrido.</p>
+      </div>
+      <div class="qr-links">
+        @for (table of demoTables; track table.code) {
+          <a class="btn btn-secondary" routerLink="/menu" [queryParams]="{ table: table.code }">
+            <span aria-hidden="true">⌗</span> QR · {{ table.name }}
+          </a>
+        }
+      </div>
+    </div>
+
+    <ol class="steps">
+      <li>
+        <span class="step-number">01</span>
+        <h3>Escanea</h3>
+        <p>El QR identifica la mesa y la mantiene bloqueada durante todo el pedido.</p>
+      </li>
+      <li>
+        <span class="step-number">02</span>
+        <h3>Elige</h3>
+        <p>Descubre platos, filtra por categoría y añade indicaciones para cocina.</p>
+      </li>
+      <li>
+        <span class="step-number">03</span>
+        <h3>Confirma</h3>
+        <p>Envía el pedido y sigue los cambios de estado realizados por cocina.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="menu-preview" aria-labelledby="preview-title" appRevealOnScroll>
+    <div class="shell">
+      <div class="preview-heading">
+        <div>
+          <p class="eyebrow">La carta</p>
+          <h2 id="preview-title">Cocina que empieza en el origen.</h2>
+        </div>
+        <a class="btn btn-secondary" routerLink="/menu">Explorar menú completo</a>
+      </div>
+
+      <div class="dish-grid">
+        @for (dish of featuredDishes; track dish.name; let index = $index) {
+          <article class="dish" [class.dish-featured]="index === 1">
+            <img [src]="dish.image" [alt]="dish.name" loading="lazy">
+            <div class="dish-copy">
+              <span>0{{ index + 1 }}</span>
+              <h3>{{ dish.name }}</h3>
+              <p>{{ dish.description }}</p>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section id="story" class="story shell" aria-labelledby="story-title" appRevealOnScroll>
+    <div class="story-image">
+      <img src="assets/imgs/about-4.jpg" alt="Equipo de ChefTable preparando un plato" loading="lazy">
+      <span>Desde 2005</span>
+    </div>
+    <div class="story-copy">
+      <p class="eyebrow">Nuestra cocina</p>
+      <h2 id="story-title">Tradición, producto y una mirada contemporánea.</h2>
+      <p>
+        ChefTable nació alrededor de una idea sencilla: servir platos honestos, preparados con técnica y con respeto por cada ingrediente.
+      </p>
+      <p>
+        Nuestro menú celebra la temporada y la diversidad de la cocina peruana. La experiencia digital reduce la espera sin reemplazar lo esencial: la atención humana.
+      </p>
+      <a class="text-link dark" routerLink="/menu">Conoce la carta <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+
+  <section id="visit" class="visit" aria-labelledby="visit-title" appRevealOnScroll>
+    <div class="visit-media" aria-hidden="true"></div>
+    <div class="visit-card">
+      <p class="eyebrow">Te esperamos</p>
+      <h2 id="visit-title">Reserva tiempo para disfrutar.</h2>
+      <div class="visit-details">
+        <div><span>Dirección</span><p>Miraflores, Lima · Dirección de demostración</p></div>
+        <div><span>Horario</span><p>Lun–Vie 12:00–22:00<br>Sáb–Dom 12:00–23:00</p></div>
+        <div><span>Contacto</span><p>Información de demostración<br>contacto&#64;cheftable.pe</p></div>
+      </div>
+      <a class="btn btn-primary" routerLink="/menu">Ver el menú de hoy</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="shell footer-grid">
+    <div>
+      <a class="brand" routerLink="/"><span class="brand-mark" aria-hidden="true">CT</span><span>ChefTable</span></a>
+      <p>Una demostración de pedidos en mesa construida con Angular y Spring Boot.</p>
+    </div>
+    <nav aria-label="Navegación de pie de página">
+      <a routerLink="/menu">Menú</a>
+      <a href="#story">Nuestra cocina</a>
+      <a routerLink="/login">Equipo</a>
+    </nav>
+    <p class="copyright">© 2026 ChefTable</p>
+  </div>
+</footer>
